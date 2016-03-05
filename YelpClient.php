@@ -3,10 +3,10 @@
 require_once('lib/OAuth.php');
 
 class YelpClient {
-	public $_consumerKey= "v17qa0DbnNymaONkM6Qtyw";
-	public $_consumerSecret = "APSexJfFL_9_kzZTTNmF5bCmUO4";
-	public $_token = "jvk6EbpSJ08tVft6kJmb1qaSrMIq7X3_";
-	public $_tokenSecret = "QjWbHAQ_ApvB-IdY_SpUrMYh9lc";
+	public $_consumerKey= "";
+	public $_consumerSecret = "";
+	public $_token = "";
+	public $_tokenSecret = "";
 
 	function request($api, $params) {
 		$unsigned_url = "https://api.yelp.com/v2/" . $api . ($params == null ? "" : ("?" . $params));
