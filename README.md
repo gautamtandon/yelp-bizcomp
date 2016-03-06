@@ -19,7 +19,7 @@ This is a simple php based web application that starts with a business's yelp bu
 
 ## Usage
 1. Find your business Id on yelp, or pick any business's yelp id.
-2. Hit this URL in your browser: http://localhost?id=<yelp business id>
+2. Hit this URL in your browser: http://localhost?id=[yelp business id]
 
 ### Tips
 1. You can drag the map to a different location to load new set of competitors in that view area.
@@ -29,7 +29,7 @@ This is a simple php based web application that starts with a business's yelp bu
 ## FAQ
 
 ### How can I find business Id of any business on yelp?
-Simply search for that business on yelp.com and go to it's page. Look at the browser's URL. It will be something like "https://www.yelp.com/biz/<yelp business id>". That's the yelp business Id.
+Simply search for that business on yelp.com and go to it's page. Look at the browser's URL. It will be something like "https://www.yelp.com/biz/[yelp business id]". That's the yelp business Id.
 
 ### What do those color codes mean?
 Colors correspond to Yelp rating.
