@@ -1,22 +1,3 @@
-<?php
-
-include "YelpClient.php";
-
-$yc = new YelpClient();
-
-if (isset($_REQUEST['q'])) {
-	if ($_REQUEST['q'] == 'business') {
-		echo $yc->request("business/".$_REQUEST['biz_id'], null);
-	} elseif ($_REQUEST['q'] == 'search') {
-		$url_params = array();
-		$url_params['bounds'] = $_REQUEST['bounds'];
-		$url_params['category_filter'] = $_REQUEST['category_filter'];
-		echo $yc->request("search", http_build_query($url_params));
-	}
-	exit;
-}
-
-?>
 <html>
 
 <head>
@@ -28,24 +9,32 @@ if (isset($_REQUEST['q'])) {
 </head>
 
 <body>
-<div align="center">
-Your Yelp Business ID: <input id="biz_id" /> <input id="button" type="button" value="Find Competition" onclick="fill_map(true)" /><br/>
-<br/>
-<div id="map" style="width: 70%; height: 80%; border: 1px solid gray">Loading...</div>
-</div>
+<div id="map" style="width: 100%; height: 98%; border: 1px solid gray"></div>
+<div id="status_bar" style="text-align: right; font-size: 80%; font-family: monospace; color: gray">Initializing Google Maps...</div>
+
+<!--
+<table align="center" width="100%" height="100%">
+<tr><td style="width: 100%; height: 100%"></td></tr>
+<tr><td style="font-size: 80%; font-family: monospace; color: gray" id="status_bar">Initializing Google Maps...</td></tr>
+</table>
+-->
 
 <script>
 var map = null;
 var markers = [];
+var rating_colors = ["", "#FF0000", "#FFA500", "#FFFF00", "#00FF00", "#008000"];
 
-function add_marker(biz_data, show_label) {
+function add_marker(biz_data, is_competitor) {
 	var marker = new google.maps.Marker({
 		position: {lat: biz_data['location']['coordinate']['latitude'], lng: biz_data['location']['coordinate']['longitude']},
 		map: map,
 		animation: google.maps.Animation.DROP,
 	});
-	if (show_label) {
-		marker.setLabel(""+Math.round(biz_data['rating']));
+	if (is_competitor) {
+		marker.setIcon({path: google.maps.SymbolPath.CIRCLE, scale: 12, strokeWeight: 0, fillColor: rating_colors[Math.round(biz_data['rating'])], fillOpacity: 1});
+		if (biz_data['deals'] != null || biz_data['gift_certificates'] != null) {
+			marker.setLabel({fontWeight: "bold", fontSize: "24px", color: "#FFFFFF", text: "*"});
+		}
 	}
 
 	var display_address = "";
@@ -77,32 +66,24 @@ function add_marker(biz_data, show_label) {
 	});
 	marker.addListener("click", function() {
 		infoWindow.close();
-		$("#biz_id").val(biz_data['id']);
-		fill_map(true);
+		window.location.href="/?id="+biz_data['id'];
+	});
+	marker.addListener("rightclick", function() {
+		infoWindow.close();
+		window.open("https://www.yelp.com/biz/"+biz_data['id']);
 	});
 	markers.push(marker);
 }
 
 function initMap() {
-	var mapDiv = $("#map")[0];
-	var currLocation = navigator.geolocation.getCurrentPosition(function(position) {
-		map = new google.maps.Map(mapDiv, {
-			center: {lat: position.coords.latitude, lng: position.coords.longitude}, 
-			zoom: 13
-		});
-		map.addListener("dragend", function() {fill_map(false)});
-		map.addListener("resize", function() {fill_map(false)});
-		map.addListener("zoom_changed", function() {fill_map(false)});
-
-		var marker = new google.maps.Marker({
-			position: {lat: position.coords.latitude, lng: position.coords.longitude},
-			map: map,
-			animation: google.maps.Animation.DROP,
-			title: "You Are Here!"
-		});
-		markers.push(marker);
+	map = new google.maps.Map($("#map")[0], {
+		zoom: 18
 	});
-	$("#button").prop("disabled", false);
+	map.addListener("dragend", function() {fill_map(false)});
+	map.addListener("resize", function() {fill_map(false)});
+	map.addListener("zoom_changed", function() {fill_map(false)});
+
+	fill_map(true);
 }
 
 function fill_map(set_center) {
@@ -111,13 +92,12 @@ function fill_map(set_center) {
 	});
 	markers = [];
 
-	$("#button").prop("disabled", true);
-	$("#button").val("Finding This Business...");
 	var biz_data = null;
+	$("#status_bar").html("Getting Yelp Business Info for id: "+"<?php echo $_REQUEST['id'] ?>...");
 	$.ajax({
 		type: "GET",
 		async: false,
-		url: "/index.php?q=business&biz_id="+$("#biz_id").val()
+		url: "/yelpclient.php?q=business&biz_id="+"<?php echo $_REQUEST['id'] ?>"
 	}).done(function(data) {
 		biz_data = $.parseJSON(data);
 		add_marker(biz_data, false);
@@ -135,12 +115,11 @@ function fill_map(set_center) {
 		}
 	});
 
-	$("#button").prop("disabled", true);
-	$("#button").val("Finding Competition...");
+	$("#status_bar").html("Getting Yelp Business Info for competitors in the visible map...");
 	$.ajax({
                 type: "GET",
                 async: false, 
-                url: "/index.php?q=search&bounds="+map.getBounds().getSouthWest().lat()+","+map.getBounds().getSouthWest().lng()+"|"+map.getBounds().getNorthEast().lat()+","+map.getBounds().getNorthEast().lng()+"&category_filter="+encodeURI(categories)
+                url: "/yelpclient.php?q=search&bounds="+map.getBounds().getSouthWest().lat()+","+map.getBounds().getSouthWest().lng()+"|"+map.getBounds().getNorthEast().lat()+","+map.getBounds().getNorthEast().lng()+"&category_filter="+encodeURI(categories)
         }).done(function(data) {
                 var search_data = $.parseJSON(data);
 		$.each(search_data['businesses'], function(idx){
@@ -149,9 +128,8 @@ function fill_map(set_center) {
 			}
 		});
         });
-	$("#button").prop("disabled", false);
-	$("#button").val("Find Competition");
 
+	$("#status_bar").html("Done loading.");
 }
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
