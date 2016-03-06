@@ -77,7 +77,7 @@ function add_marker(biz_data, is_competitor) {
 
 function initMap() {
 	map = new google.maps.Map($("#map")[0], {
-		zoom: 18
+		zoom: 14
 	});
 	map.addListener("dragend", function() {fill_map(false)});
 	map.addListener("resize", function() {fill_map(false)});
