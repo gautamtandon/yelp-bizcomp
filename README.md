@@ -4,6 +4,11 @@ Business competition visualizer based on Yelp data.
 ## Introduction
 This is a simple php based web application that starts with a business's yelp business id, and then shows competing businesses. To compare apples to apples, I'm loading only the businesses with the same category list.
 
+## Working prototype
+http://gautamtandon.me/yelp-bizcomp
+
+NOTE: Please be mindful of the Yelp API usage thresholds. Thanks!
+
 ## Setup
 
 ### Pre-requisites
